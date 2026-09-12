@@ -149,18 +149,18 @@ class Shadow:
         reviewed: list[dict] = []
         veto_worthy: list[dict] = []
         for c in critiques:
-            has_artifact = bool(c.artifact)
+            artifact = c.artifact
             confirmed = False
             detail = "cheap-talk"
-            if has_artifact:
-                v = self.verifier.verify(c.artifact, draft)
+            if artifact:
+                v = self.verifier.verify(artifact, draft)
                 confirmed = v.confirmed
                 detail = v.detail
             if self.ledger:
-                self.ledger.record(c.claim, has_artifact, confirmed)
+                self.ledger.record(c.claim, bool(artifact), confirmed)
             entry = {
                 "claim": c.claim,
-                "artifact": c.artifact,
+                "artifact": artifact,
                 "severity": c.severity,
                 "confirmed": confirmed,
                 "detail": detail,

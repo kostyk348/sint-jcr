@@ -18,7 +18,7 @@
 
 import type { Plugin } from "@opencode-ai/plugin"
 
-import { applyParams, applyVeto, injectIntoMessages, renderContext } from "./directives.ts"
+import { applyParams, applyVeto, injectIntoMessages, quantizeParams, renderCharacterBlock, renderContext } from "./directives.ts"
 import type { MessageLike } from "./directives.ts"
 
 const JCR_URL = process.env.JCR_URL ?? "http://127.0.0.1:8765"
@@ -70,13 +70,15 @@ export default (async ({ project }) => {
       await jcr("/observe", { text, session: session(), turn: 0 })
     },
 
-    // H3 — psychoid coupling: affect -> sampling parameters
+    // H3 — psychoid coupling: affect -> sampling parameters (quantized, cache-safe)
     "chat.params": async (_input, output) => {
       const p = await jcrGet("/params")
-      applyParams(output, p?.params ?? null)
+      applyParams(output, quantizeParams(p?.params ?? null))
     },
 
-    // H4 — context compiler: budgeted assembly injected into the message array
+    // H4 — context compiler. CACHE RULE: dynamic content goes to the TAIL only
+    // (the newest user message). The cached prefix — system + history — is never
+    // rewritten here, so only the small injected block is uncached.
     "experimental.chat.messages.transform": async (_input, output) => {
       const messages = output.messages as MessageLike[]
       const text = lastUserText(messages)
@@ -86,21 +88,13 @@ export default (async ({ project }) => {
       if (block) injectIntoMessages(messages, block)
     },
 
-    // dynamic system-prompt assembly: character traits + runtime state
+    // CACHE RULE: the system prompt must be byte-stable. Only the deterministic
+    // character block is allowed here — no counters, no uptime, no event counts.
+    // Volatile runtime state belongs in the tail (messages.transform).
     "experimental.chat.system.transform": async (_input, output) => {
-      const [state, character] = await Promise.all([jcrGet("/state"), jcrGet("/character")])
-      if (state?.ledger) {
-        const mean = Number(state.ledger.mean_energy ?? 0).toFixed(3)
-        output.system.push(
-          `## JCR runtime state (auto)\nbus=${state.bus?.format} events=${state.bus?.events} chain_ok=${state.bus?.chain?.ok} nodes=${state.ledger.nodes} mean_energy=${mean}`,
-        )
-      }
-      const traits = character?.traits ?? []
-      if (traits.length) {
-        output.system.push(
-          ["## Character (operative dispositions)", ...traits.map((t: any) => `- ${t.statement}`)].join("\n"),
-        )
-      }
+      const character = await jcrGet("/character")
+      const block = renderCharacterBlock(character?.traits ?? [])
+      if (block) output.system.push(block)
     },
 
     // H3 — the veto: deny or gate a tool call. The artifact Shadow can also veto
@@ -129,8 +123,21 @@ export default (async ({ project }) => {
       await jcr("/observe", { text, session: session(), turn: 0 })
     },
 
-    event: async () => {
-      // Phase 5: publish harness-level telemetry.
+    // Cache telemetry: report REAL prompt-cache usage from the host
+    // (opencode exposes tokens.cache.read/write). This turns "is the harness
+    // cache-friendly?" into a measured number instead of a claim.
+    event: async ({ event }) => {
+      const e = event as any
+      if (e?.type !== "message.updated") return
+      const info = e?.properties?.info
+      if (!info || info.role !== "assistant" || !info.tokens) return
+      const t = info.tokens
+      await jcr("/cache", {
+        input: t.input ?? 0,
+        output: t.output ?? 0,
+        cache_read: t.cache?.read ?? 0,
+        cache_write: t.cache?.write ?? 0,
+      })
     },
   }
 }) satisfies Plugin

@@ -256,7 +256,8 @@ sint-jcr/
 │   ├── 10-risks.md                honest limitations, anti-patterns, failure modes
 │   ├── 11-harness.md              what a harness is; MCP vs executive; the hook surface
 │   ├── 12-character.md            where personality lives; traits, drift, individuation
-│   └── 13-mcp-review.md           MCP audit: what to upgrade, leave, or retire
+│   ├── 13-mcp-review.md           MCP audit: what to upgrade, leave, or retire
+│   └── 14-cache.md                cache discipline: prefix immutability + measurement
 ├── schemas/                       machine-readable contracts
 │   ├── node.schema.json           libido-ledger memory node
 │   ├── event.schema.json          bus event envelope
@@ -284,8 +285,8 @@ Phases 0–4 of the harness roadmap are **running**, not just specified:
 
 ```bash
 cd core
-python3 -m unittest discover -s tests          # 95/95 green
-node --test ../harness/directives.test.ts      # 8/8 green
+python3 -m unittest discover -s tests          # 117/117 green
+node --test ../harness/directives.test.ts      # 13/13 green
 scripts/jcr-daemon.sh start                    # start|stop|restart|status
 python3 -m jcr_core.eval --samples samples.json  # persona falsification
 python3 -m jcr_core.bridge --limit 100         # import sint-memory into the ledger
@@ -323,6 +324,9 @@ python3 -m jcr_core.bridge --limit 100         # import sint-memory into the led
   libido (exact + permutation Monte-Carlo estimators; dummy gets nothing).
 - **sint-memory bridge** — ingests existing blocks into the ledger and verifies the
   source hash-chain (4 600+ blocks verified).
+- **Cache discipline** — the system prompt is byte-stable (only a deterministic
+  character block), all volatile content goes to the tail, params are quantized.
+  Real hit rate is measured from `tokens.cache.read/write` via `GET /cache`.
 - **Harness** — real opencode plugin wired to `chat.message`, `system.transform`,
   `messages.transform`, `chat.params`, `permission.ask` (veto + Shadow), `tool.execute.after`.
 

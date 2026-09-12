@@ -14,6 +14,9 @@ GET  /telemetry
 GET  /proposals
 GET  /invariants
 GET  /credit
+GET  /monitor
+GET  /identity
+GET  /cache
 POST /observe   {"text": "...", "session": "...", "turn": 0}
 POST /remember  {"content": "...", "register": "FACT", "project": "..."}
 POST /plan      {"text": "...", "k": 8}
@@ -28,6 +31,11 @@ POST /ratify_invariant {"invariant_id": "inv_..."}
 POST /axes      {"x": {"abstract": 0.4}, "dt": 1.0}
 POST /arbitrate {"positions": [...], "candidates": [...], "candidate_axes": {...}}
 POST /import    {"path": "...", "limit": null, "force": false}
+POST /monitor   {"text": "...", "project": "..."}
+POST /monitor/outcome {"crossing_id": "cross_...", "useful": true}
+POST /identity/audit {"self_db": "..."}
+POST /memory/eml {"out_dir": "...", "limit": null}
+POST /cache     {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}
 POST /events    {"since": 0, "kinds": ["activation"], "limit": 200}
 POST /outcome   {"node_ids": [...], "useful": true, "turn_id": "turn_..."}
 
@@ -47,9 +55,9 @@ def _make_handler(rt: Runtime):
     class Handler(BaseHTTPRequestHandler):
         server_version = "jcr-daemon/0.1"
 
-        def log_message(self, fmt, *args):  # keep the console quiet
+        def log_message(self, format: str, *args) -> None:  # noqa: A002 - base signature
             if os.environ.get("JCR_VERBOSE"):
-                super().log_message(fmt, *args)
+                super().log_message(format, *args)
 
         def _send(self, code: int, body: dict) -> None:
             raw = json.dumps(body).encode("utf-8")
@@ -85,6 +93,12 @@ def _make_handler(rt: Runtime):
                 return self._send(200, {"invariants": rt.invariants_list()})
             if self.path == "/credit":
                 return self._send(200, rt.credit())
+            if self.path == "/monitor":
+                return self._send(200, rt.monitor_status())
+            if self.path == "/identity":
+                return self._send(200, rt.identity_export())
+            if self.path == "/cache":
+                return self._send(200, rt.cache_stats())
             self._send(404, {"error": "not found"})
 
         def do_POST(self) -> None:  # noqa: N802
@@ -132,6 +146,16 @@ def _make_handler(rt: Runtime):
                     return self._send(200, rt.arbitrate(b.get("positions", []), b.get("candidates", []), b.get("candidate_axes")))
                 if self.path == "/import":
                     return self._send(200, rt.import_memory(b.get("path"), b.get("limit"), bool(b.get("force", False))))
+                if self.path == "/monitor":
+                    return self._send(200, rt.monitor_scan(b.get("text", ""), b.get("project")))
+                if self.path == "/monitor/outcome":
+                    return self._send(200, rt.monitor_label(b["crossing_id"], bool(b.get("useful", True))))
+                if self.path == "/identity/audit":
+                    return self._send(200, rt.identity_audit(b["self_db"]))
+                if self.path == "/memory/eml":
+                    return self._send(200, rt.memory_to_eml(b["out_dir"], b.get("limit")))
+                if self.path == "/cache":
+                    return self._send(200, rt.report_cache(int(b.get("input", 0)), int(b.get("output", 0)), int(b.get("cache_read", 0)), int(b.get("cache_write", 0))))
             except KeyError as exc:
                 return self._send(400, {"error": f"missing field {exc}"})
             except Exception as exc:  # noqa: BLE001

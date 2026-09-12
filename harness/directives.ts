@@ -28,6 +28,38 @@ export function applyParams(output: ChatParamsOutput, p: Params | null | undefin
   return output
 }
 
+/**
+ * Quantize sampling parameters so they change in coarse steps.
+ *
+ * Rationale (cache): a value that changes every turn is a value that can defeat
+ * provider-side caching for hosts that key on request params. Coarse steps mean
+ * params change rarely, and only when affect materially moves.
+ */
+export function quantizeParams(p: Params | null | undefined): Params | null {
+  if (!p) return null
+  const out: Params = {}
+  if (typeof p.temperature === "number") out.temperature = Math.round(p.temperature * 10) / 10
+  if (typeof p.top_p === "number") out.top_p = Math.round(p.top_p * 20) / 20
+  if (typeof p.max_output_tokens === "number") out.max_output_tokens = Math.round(p.max_output_tokens / 256) * 256
+  return out
+}
+
+/**
+ * Render the STABLE character block for the system prompt.
+ *
+ * This is the only thing the harness may put in the system prompt, and it must be
+ * **byte-identical across turns** for a given trait set — otherwise the provider's
+ * prefix cache is invalidated from position 0 and every token misses. Never add
+ * counters, timestamps, uptime or event counts here; those go to the tail.
+ */
+export function renderCharacterBlock(traits: Array<{ statement: string; polarity?: number }>): string {
+  if (!traits?.length) return ""
+  const lines = traits
+    .map((t) => `${t.polarity !== undefined && t.polarity < 0 ? "Guard against" : "Lean toward"}: ${t.statement}`)
+    .sort()
+  return ["## Character (stable)", ...lines].join("\n")
+}
+
 export type VetoDecision = {
   status?: "allow" | "ask" | "deny"
   reason?: string

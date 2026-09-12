@@ -33,6 +33,12 @@ class JCRConfig:
     # --- character ---
     character_traits_in_context: int = 5
 
+    # --- synchronicity monitor (docs/06) ---
+    monitor_d_min: float = 0.5
+    monitor_s_min: float = 0.35
+    monitor_precision_floor: float = 0.6
+    monitor_hard: bool = os.environ.get("JCR_MONITOR_HARD", "") == "1"
+
     # --- embedding ---
     embed_dim: int = 256
 

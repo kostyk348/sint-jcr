@@ -25,9 +25,15 @@ from jcr_core.psychoid import PsychoidSampler, veto_decision
 from jcr_core.arbiter import Arbiter, EnantiodromiaGovernor, Position
 from jcr_core.attribution import credit_from_turns
 from jcr_core.bridge import import_chain, verify_source_chain
+from jcr_core.cache import CacheLedger
+from jcr_core.consolidate import audit_identity, export_identity, memory_to_eml
+from jcr_core.critic import HttpCritic
+from jcr_core.monitor import SynchronicityMonitor
 from jcr_core.selfplay import InvariantStore, SelfPlay
 from jcr_core.shadow import Shadow, ShadowLedger
 from jcr_core.types import Event, EventKind, Register
+
+import os
 
 
 class Runtime:
@@ -50,11 +56,32 @@ class Runtime:
         self.invariants = InvariantStore(self.cfg.invariant_path())
         self.selfplay = SelfPlay(self.invariants)
         self.shadow_ledger = ShadowLedger(self.cfg.shadow_path())
-        self.shadow = Shadow(ledger=self.shadow_ledger)
+        self.shadow = Shadow(self._make_critic(), ledger=self.shadow_ledger)
+        self.monitor = SynchronicityMonitor(
+            self.ledger,
+            self.cfg,
+            db_path=self.cfg.home / "monitor.db",
+            d_min=self.cfg.monitor_d_min,
+            s_min=self.cfg.monitor_s_min,
+            precision_floor=self.cfg.monitor_precision_floor,
+            hard=self.cfg.monitor_hard,
+        )
+        self.cache = CacheLedger(self.cfg.home / "cache.db")
         self.governor = EnantiodromiaGovernor(axes=["abstract", "performance", "exploration"])
         self.arbiter = Arbiter(self.governor)
         self.started = time.time()
         self._last_turn: str | None = None
+
+    @staticmethod
+    def _make_critic():
+        """Use an LLM critic if configured (JCR_CRITIC_URL/MODEL), else deterministic."""
+        url = os.environ.get("JCR_CRITIC_URL")
+        model = os.environ.get("JCR_CRITIC_MODEL")
+        if url and model:
+            return HttpCritic(url, model, os.environ.get("JCR_CRITIC_API_KEY", ""))
+        from jcr_core.shadow import PatternCommandCritic
+
+        return PatternCommandCritic()
 
     # ------------------------------------------------------------------ write
 
@@ -187,6 +214,45 @@ class Runtime:
         self.bus.publish(Event(kind=EventKind.RESONANCE, source="bridge", payload={"imported": result["imported"], "skipped": result["skipped"]}))
         return result
 
+    # --------------------------------------------------------------- monitor
+
+    def monitor_scan(self, text: str, project: str | None = None) -> dict:
+        crossings = self.monitor.scan(text, project=project)
+        for c in crossings:
+            self.bus.publish(Event(kind=EventKind.CROSSING, source="monitor", priority=c.score, payload=c.as_dict()))
+        return {"crossings": [c.as_dict() for c in crossings], "may_inject": self.monitor.may_inject()}
+
+    def monitor_status(self) -> dict:
+        return self.monitor.status()
+
+    def monitor_label(self, crossing_id: str, useful: bool) -> dict:
+        ok = self.monitor.label(crossing_id, useful)
+        self.bus.publish(Event(kind=EventKind.OUTCOME, source="monitor", payload={"crossing_id": crossing_id, "useful": useful}))
+        return {"labelled": ok, "status": self.monitor.status()}
+
+    # ----------------------------------------------------------- consolidation
+
+    def identity_export(self) -> dict:
+        return export_identity(self.character)
+
+    def identity_audit(self, self_db_path: str) -> dict:
+        return audit_identity(self.character, self_db_path)
+
+    def memory_to_eml(self, out_dir: str, limit: int | None = None, chain: str | None = None) -> dict:
+        from jcr_core.bridge import DEFAULT_CHAIN
+
+        return memory_to_eml(chain or str(DEFAULT_CHAIN), out_dir, limit=limit)
+
+    # ------------------------------------------------------------------ cache
+
+    def report_cache(self, input_tokens: int, output_tokens: int, cache_read: int, cache_write: int) -> dict:
+        """Record real prompt-cache usage reported by the host."""
+        self.cache.record(input_tokens, output_tokens, cache_read, cache_write)
+        return self.cache.stats()
+
+    def cache_stats(self) -> dict:
+        return self.cache.stats()
+
     def compile(self, text: str = "", budget_tokens: int = 1200, k: int = 8) -> dict:
         """Context compiler: budgeted assembly for the next model call.
 
@@ -249,6 +315,8 @@ class Runtime:
             "shadow": self.shadow_ledger.stats(),
             "invariants": {"total": len(self.invariants.list()), "ratified": len(self.invariants.list(ratified_only=True))},
             "governor": self.governor.state(),
+            "monitor": self.monitor.status(),
+            "cache": self.cache.stats(),
         }
 
     def events(self, since: int = 0, kinds: list[str] | None = None, limit: int = 200) -> list[dict]:
@@ -265,6 +333,8 @@ class Runtime:
         self.dream.close()
         self.invariants.close()
         self.shadow_ledger.close()
+        self.monitor.close()
+        self.cache.close()
         self.ledger.close()
         self.character.close()
         self.log.close()

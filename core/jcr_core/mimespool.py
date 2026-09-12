@@ -58,11 +58,14 @@ class MimeSpool:
 
     def append(self, event: Event) -> Event:
         with self._lock:
-            self._seq += 1
-            event.seq = self._seq
+            seq = self._seq + 1
+            self._seq = seq
+            prev = self._head
             payload_json = canonical(event.payload)
-            event.prev_hash = self._head
-            event.hash = chain_hash(event.seq, event.id, event.ts, event.kind_value(), payload_json, self._head)
+            digest = chain_hash(seq, event.id, event.ts, event.kind_value(), payload_json, prev)
+            event.seq = seq
+            event.prev_hash = prev
+            event.hash = digest
 
             text = _render(event, payload_json)
             # `.msg.eml` is the EML-IPC filename convention (mime-os/src/ipc.rs),
@@ -112,13 +115,13 @@ class MimeSpool:
 
     def verify_chain(self) -> dict:
         """Recompute the hash-chain. Returns {ok, checked, broken_at}."""
-        prev = GENESIS
+        prev: str = GENESIS
         for i, e in enumerate(self._cache):
             payload_json = canonical(e.payload)
-            expect = chain_hash(e.seq, e.id, e.ts, e.kind_value(), payload_json, prev)
+            expect = chain_hash(int(e.seq or 0), e.id, e.ts, e.kind_value(), payload_json, prev)
             if e.prev_hash != prev or e.hash != expect:
                 return {"ok": False, "checked": i, "broken_at": e.seq}
-            prev = e.hash
+            prev = e.hash or ""
         return {"ok": True, "checked": len(self._cache), "broken_at": None}
 
     # ---------------------------------------------------------------- internal

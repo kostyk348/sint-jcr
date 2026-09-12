@@ -155,7 +155,8 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("live mode needs --base-url, --model and --prompts")
         return 2
 
-    prompts = _load_json(args.prompts)
+    loaded = _load_json(args.prompts)
+    prompts = loaded if isinstance(loaded, list) else []
     traits = args.traits
     if traits.startswith("@"):
         with open(traits[1:], "r", encoding="utf-8") as fh:

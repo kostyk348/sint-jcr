@@ -18,11 +18,26 @@ import sqlite3
 import threading
 from collections import defaultdict
 from pathlib import Path
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Protocol, runtime_checkable
 
 from jcr_core.types import Event
 
 Subscriber = Callable[[Event], None]
+
+
+@runtime_checkable
+class Log(Protocol):
+    """The interface both the `.eml` spool and the SQLite index implement."""
+
+    def append(self, event: Event) -> Event: ...
+
+    def read(self, since: int = 0, kinds: Iterable[str] | None = None, session: str | None = None, limit: int = 1000) -> list[Event]: ...
+
+    def tail(self, n: int = 20) -> list[Event]: ...
+
+    def count(self) -> int: ...
+
+    def close(self) -> None: ...
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS events (
@@ -67,7 +82,7 @@ class EventLog:
                 },
             )
             self._conn.commit()
-            event.seq = int(cur.lastrowid)
+            event.seq = int(cur.lastrowid or 0)
         return event
 
     def read(
@@ -131,7 +146,7 @@ class Bus:
     the publisher, so exceptions are swallowed and reported as ``error`` events.
     """
 
-    def __init__(self, log: EventLog) -> None:
+    def __init__(self, log: "Log") -> None:
         self.log = log
         self._subs: dict[str, list[Subscriber]] = defaultdict(list)
         self._lock = threading.RLock()

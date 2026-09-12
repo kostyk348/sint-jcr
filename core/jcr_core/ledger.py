@@ -253,6 +253,14 @@ class LibidoLedger:
             frontier = sorted(nxt)
         return affected
 
+    def touch(self, node_id: str, now: float | None = None) -> None:
+        """Mark a node as just activated (used by the monitor's distance model)."""
+        with self._lock:
+            self._conn.execute(
+                "UPDATE nodes SET last_activation = ? WHERE id = ?", (_iso(now or time.time()), node_id)
+            )
+            self._conn.commit()
+
     def reinforce(self, node_ids: Iterable[str], delta: float) -> None:
         """Reward (+) or penalise (-) nodes after an outcome is known."""
         with self._lock:
