@@ -142,6 +142,11 @@ class MimeSpool:
         except Exception:  # noqa: BLE001 - a broken record must not kill the log
             return None
 
+    def close(self) -> None:
+        """Drop in-memory caches. The spool is append-only; nothing to flush."""
+        with self._lock:
+            self._cache.clear()
+
 
 def _render(event: Event, payload_json: str) -> str:
     sid = event.session or "-"

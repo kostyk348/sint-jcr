@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-compatible-blue)](https://modelcontextprotocol.io)
 [![Ecosystem](https://img.shields.io/badge/ecosystem-24_MCP_servers-blueviolet)](#-the-ecosystem)
-[![Status](https://img.shields.io/badge/harness-H0--H7_running-brightgreen)](#-roadmap)
+[![Status](https://img.shields.io/badge/harness-H0--H8_running-brightgreen)](#-roadmap)
 [![Theory](https://img.shields.io/badge/game_theory-7_formalisms-success)](#-game-theory-of-the-psyche)
 
 </div>
@@ -255,19 +255,25 @@ sint-jcr/
 │   ├── 09-roadmap.md              phased build plan (ego first, then Self)
 │   ├── 10-risks.md                honest limitations, anti-patterns, failure modes
 │   ├── 11-harness.md              what a harness is; MCP vs executive; the hook surface
-│   └── 12-character.md            where personality lives; traits, drift, individuation
+│   ├── 12-character.md            where personality lives; traits, drift, individuation
+│   └── 13-mcp-review.md           MCP audit: what to upgrade, leave, or retire
 ├── schemas/                       machine-readable contracts
 │   ├── node.schema.json           libido-ledger memory node
 │   ├── event.schema.json          bus event envelope
 │   └── complex-manifest.schema.json
 ├── catalog/
 │   └── servers.json               the 24 servers, tools, status, layer
-├── core/                          Phase 0 runtime (Python, stdlib-only)
-│   ├── jcr_core/                  bus · ledger · runtime · daemon
+├── core/                          runtime (Python, stdlib-only)
+│   ├── jcr_core/                  bus · ledger · character · compiler · psychoid
+│   │                              arbiter · attribution · induction · selfplay
+│   │                              shadow · bridge · eval · daemon
 │   ├── jcr_mcp/                   FastMCP facade (advisory port, not executive)
-│   └── tests/                     16 tests — green
-├── harness/                       Phase 0 in-loop executive (opencode TS plugin)
-│   └── index.ts                   system.transform · tool.after · (params/veto reserved)
+│   ├── scripts/jcr-daemon.sh      start|stop|restart|status
+│   └── tests/                     95 tests — green
+├── harness/                       in-loop executive (opencode TS plugin)
+│   ├── index.ts                   hooks: system/messages/params/permission
+│   ├── directives.ts              pure, unit-tested logic
+│   └── directives.test.ts         8 tests — green
 ├── LICENSE
 └── .gitignore
 ```
@@ -278,10 +284,11 @@ Phases 0–4 of the harness roadmap are **running**, not just specified:
 
 ```bash
 cd core
-python3 -m unittest discover -s tests          # 75/75 green
+python3 -m unittest discover -s tests          # 95/95 green
 node --test ../harness/directives.test.ts      # 8/8 green
-python3 -m jcr_core.daemon                     # http://127.0.0.1:8765
+scripts/jcr-daemon.sh start                    # start|stop|restart|status
 python3 -m jcr_core.eval --samples samples.json  # persona falsification
+python3 -m jcr_core.bridge --limit 100         # import sint-memory into the ledger
 ```
 
 - **Bus = hash-chained `.eml`** (`MimeSpool`) — the source of truth. It is a valid EML-IPC
@@ -309,6 +316,13 @@ python3 -m jcr_core.eval --samples samples.json  # persona falsification
   robustness 0.75 → 1.0 over rounds, no per-example human labels.
 - **Persona evaluation** — `python -m jcr_core.eval --samples …` (offline) or live against an
   OpenAI-compatible endpoint: ablation + portability + sycophancy verdicts.
+- **Arbiter + Enantiodromia** — Nash bargaining over disagreement points; the
+  homeostat's forcing enters as one more position (influential, not despotic).
+  Verified: after saturation the governor steers selection to the opposite pole.
+- **Shapley credit** — contribution of traits/agents from labelled outcomes, paid as
+  libido (exact + permutation Monte-Carlo estimators; dummy gets nothing).
+- **sint-memory bridge** — ingests existing blocks into the ledger and verifies the
+  source hash-chain (4 600+ blocks verified).
 - **Harness** — real opencode plugin wired to `chat.message`, `system.transform`,
   `messages.transform`, `chat.params`, `permission.ask` (veto + Shadow), `tool.execute.after`.
 

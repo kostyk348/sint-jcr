@@ -219,6 +219,24 @@ class DreamCycle:
 
     # ------------------------------------------------------------------- read
 
+    def turns(self, labelled_only: bool = True) -> list[dict]:
+        sql = "SELECT * FROM turns"
+        if labelled_only:
+            sql += " WHERE useful IS NOT NULL"
+        sql += " ORDER BY ts"
+        with self._lock:
+            rows = self._conn.execute(sql).fetchall()
+        return [
+            {
+                "id": r["id"],
+                "session": r["session"],
+                "trait_ids": json.loads(r["trait_ids"]),
+                "node_ids": json.loads(r["node_ids"]),
+                "useful": None if r["useful"] is None else bool(r["useful"]),
+            }
+            for r in rows
+        ]
+
     def telemetry(self) -> dict:
         with self._lock:
             total = int(self._conn.execute("SELECT COUNT(*) FROM turns").fetchone()[0])

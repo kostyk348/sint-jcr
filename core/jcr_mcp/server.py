@@ -123,6 +123,30 @@ def jcr_shadow_review(draft: str) -> dict:
 
 
 @mcp.tool()
+def jcr_arbitrate(positions: list, candidates: list, candidate_axes: dict | None = None) -> dict:
+    """Nash bargaining over candidates; enantiodromia forcing enters as a position."""
+    return runtime().arbitrate(positions, candidates, candidate_axes)
+
+
+@mcp.tool()
+def jcr_observe_axes(x: dict, dt: float = 1.0) -> dict:
+    """Feed signed value-axis deviations to the enantiodromia homeostat."""
+    return runtime().observe_axes(x, dt)
+
+
+@mcp.tool()
+def jcr_credit(samples: int = 1000) -> dict:
+    """Shapley credit over traits from labelled outcomes; pays libido proportionally."""
+    return runtime().credit(samples=samples)
+
+
+@mcp.tool()
+def jcr_import_memory(path: str = "", limit: int = 0, force: bool = False) -> dict:
+    """Import sint-memory blocks into the ledger (verifies the source hash-chain)."""
+    return runtime().import_memory(path or None, limit=limit or None, force=force)
+
+
+@mcp.tool()
 def jcr_poll_events(since: int = 0, kinds: list[str] | None = None, limit: int = 200) -> dict:
     """Drain bus events newer than `since`."""
     return {"events": runtime().events(since=since, kinds=kinds, limit=limit)}

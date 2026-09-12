@@ -22,6 +22,9 @@ from jcr_core.induction import DreamCycle
 from jcr_core.ledger import LibidoLedger
 from jcr_core.mimespool import MimeSpool
 from jcr_core.psychoid import PsychoidSampler, veto_decision
+from jcr_core.arbiter import Arbiter, EnantiodromiaGovernor, Position
+from jcr_core.attribution import credit_from_turns
+from jcr_core.bridge import import_chain, verify_source_chain
 from jcr_core.selfplay import InvariantStore, SelfPlay
 from jcr_core.shadow import Shadow, ShadowLedger
 from jcr_core.types import Event, EventKind, Register
@@ -48,6 +51,8 @@ class Runtime:
         self.selfplay = SelfPlay(self.invariants)
         self.shadow_ledger = ShadowLedger(self.cfg.shadow_path())
         self.shadow = Shadow(ledger=self.shadow_ledger)
+        self.governor = EnantiodromiaGovernor(axes=["abstract", "performance", "exploration"])
+        self.arbiter = Arbiter(self.governor)
         self.started = time.time()
         self._last_turn: str | None = None
 
@@ -141,6 +146,47 @@ class Runtime:
             self.bus.publish(Event(kind=EventKind.VETO, source="shadow", priority=1.0, payload={"draft_len": len(draft), "claims": [c["claim"] for c in out["veto_worthy"]]}))
         return out
 
+    # --------------------------------------------------------------- arbiter
+
+    def observe_axes(self, x_by_axis: dict[str, float], dt: float = 1.0) -> dict:
+        """Feed signed value-axis deviations to the enantiodromia homeostat."""
+        self.governor.observe(x_by_axis, dt=dt)
+        state = self.governor.state()
+        self.bus.publish(Event(kind=EventKind.ARBITRATE, source="governor", payload={"state": state, "forcing": self.governor.forcing()}))
+        return state
+
+    def arbitrate(self, positions: list[dict], candidates: list[str], candidate_axes: dict | None = None) -> dict:
+        """Nash bargaining over candidates; enantiodromia forcing enters as a position."""
+        objs = [Position(p["agent"], p.get("utilities", {}), float(p.get("disagreement", 0.0)), p.get("artifact")) for p in positions]
+        res = self.arbiter.arbitrate(objs, candidates, candidate_axes=candidate_axes).as_dict()
+        self.bus.publish(Event(kind=EventKind.ARBITRATE, source="arbiter", payload={"selected": res["selected"], "deadlock": res["deadlock"]}))
+        return res
+
+    # ------------------------------------------------------------ attribution
+
+    def credit(self, samples: int = 1000, pay_libido: bool = True, scale: float = 1.0) -> dict:
+        """Shapley credit over traits from labelled turns; optionally pay libido."""
+        report = credit_from_turns(self.dream.turns(labelled_only=True), samples=samples)
+        if pay_libido:
+            for agent, value in report["credit"].items():
+                if value > 0:
+                    self.ledger.grant(agent, value * scale)
+        self.bus.publish(Event(kind=EventKind.DREAM, source="attribution", payload={"credit": report["credit"]}))
+        return report
+
+    # ----------------------------------------------------------------- bridge
+
+    def import_memory(self, path: str | None = None, limit: int | None = None, force: bool = False) -> dict:
+        """Ingest existing sint-memory blocks into the ledger (verifying the source chain)."""
+        from jcr_core.bridge import DEFAULT_CHAIN
+
+        chain = path or str(DEFAULT_CHAIN)
+        verification = verify_source_chain(chain)
+        result = import_chain(self.ledger, chain, limit=limit, force=force)
+        result["source_chain"] = verification
+        self.bus.publish(Event(kind=EventKind.RESONANCE, source="bridge", payload={"imported": result["imported"], "skipped": result["skipped"]}))
+        return result
+
     def compile(self, text: str = "", budget_tokens: int = 1200, k: int = 8) -> dict:
         """Context compiler: budgeted assembly for the next model call.
 
@@ -202,6 +248,7 @@ class Runtime:
             "telemetry": self.dream.telemetry(),
             "shadow": self.shadow_ledger.stats(),
             "invariants": {"total": len(self.invariants.list()), "ratified": len(self.invariants.list(ratified_only=True))},
+            "governor": self.governor.state(),
         }
 
     def events(self, since: int = 0, kinds: list[str] | None = None, limit: int = 200) -> list[dict]:
