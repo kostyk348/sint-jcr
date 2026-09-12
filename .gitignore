@@ -1,0 +1,24 @@
+# JCR runtime state — never commit
+*.db
+*.sqlite
+*.sqlite3
+*.jsonl
+state/
+field/
+events.db
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# local secrets
+.env
+*.local.json

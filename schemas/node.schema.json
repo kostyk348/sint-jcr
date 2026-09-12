@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kostyk348/sint-jcr/schemas/node.schema.json",
+  "title": "JCR Libido Ledger Node",
+  "description": "An autonomous memory capsule in the personal-unconscious field. Organized around a feeling-toned (affect) core, not a topic.",
+  "type": "object",
+  "required": ["id", "ts", "register", "content", "E", "tau", "tier", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^n_[A-Za-z0-9]+$" },
+    "ts": { "type": "string", "format": "date-time" },
+    "register": {
+      "type": "string",
+      "enum": ["SENSE", "FACT", "LOGIC", "OPINION", "ACTION", "CAUSALITY"]
+    },
+    "project": { "type": "string" },
+    "content": { "type": "string", "minLength": 1 },
+    "embedding": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "Dense semantic vector. Stored locally; never leaves the machine by default."
+    },
+    "affect": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 0, "maximum": 1 },
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "[tension, load, stability, fatigue] — the feeling-toned core."
+    },
+    "E": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Libido — current energetic charge."
+    },
+    "tau": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Decay half-life in seconds."
+    },
+    "tier": { "type": "string", "enum": ["hot", "warm", "cool", "cold"] },
+    "last_activation": { "type": "string", "format": "date-time" },
+    "activation_count": { "type": "integer", "minimum": 0 },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["to", "w", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "to": { "type": "string", "pattern": "^n_[A-Za-z0-9]+$" },
+          "w": { "type": "number", "minimum": -1, "maximum": 1 },
+          "kind": {
+            "type": "string",
+            "enum": ["assoc", "contradicts", "refines", "archetype"]
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["session"],
+      "additionalProperties": true,
+      "properties": {
+        "session": { "type": "string" },
+        "block_id": { "type": "string" },
+        "hash": { "type": "string" }
+      }
+    }
+  }
+}

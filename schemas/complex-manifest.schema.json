@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kostyk348/sint-jcr/schemas/complex-manifest.schema.json",
+  "title": "JCR Complex Manifest",
+  "description": "A detected autonomous complex (daemon): a dense cluster in (embedding x affect) space with a trigger signature, a memory cluster, and a bid strategy.",
+  "type": "object",
+  "required": ["id", "name", "archetype", "trigger", "cluster", "utility", "bid"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^c_[A-Za-z0-9]+$" },
+    "name": { "type": "string", "minLength": 1 },
+    "archetype": {
+      "type": "string",
+      "enum": ["Ego", "Shadow", "Anima", "Animus", "Trickster", "Self", "Other"]
+    },
+    "trigger": {
+      "type": "object",
+      "description": "Activation condition for the complex.",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["threshold", "condition", "schedule"] },
+        "expression": { "type": "string" },
+        "threshold": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "cluster": {
+      "type": "object",
+      "required": ["node_ids"],
+      "additionalProperties": false,
+      "properties": {
+        "node_ids": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^n_[A-Za-z0-9]+$" }
+        },
+        "centroid": { "type": "array", "items": { "type": "number" } },
+        "cohesion": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "utility": {
+      "type": "object",
+      "description": "Observable-utility declaration. Only measured quantities; estimated from outcomes.",
+      "required": ["objective"],
+      "additionalProperties": false,
+      "properties": {
+        "objective": {
+          "type": "string",
+          "enum": [
+            "task_success",
+            "latency",
+            "external_acceptance",
+            "fragility_exposed",
+            "diversity",
+            "entropy",
+            "coherence"
+          ]
+        },
+        "disagreement": { "type": "number", "description": "Payoff d_i if no output is produced." }
+      }
+    },
+    "bid": {
+      "type": "object",
+      "description": "VCG auction bid strategy for context slots.",
+      "required": ["strategy"],
+      "additionalProperties": false,
+      "properties": {
+        "strategy": { "type": "string", "enum": ["truthful", "fixed", "learned"] },
+        "budget_per_turn": { "type": "number", "minimum": 0 }
+      }
+    },
+    "costly_signal": {
+      "type": "object",
+      "description": "Required for critics: what artifact makes this complex's output credible.",
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "kind": { "type": "string", "enum": ["repro_test", "counterexample", "diff", "proof"] }
+      }
+    }
+  }
+}

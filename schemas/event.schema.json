@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kostyk348/sint-jcr/schemas/event.schema.json",
+  "title": "JCR Bus Event Envelope",
+  "description": "Every internal signal on the resonance bus. Append-only; the log is the source of truth and supports replay.",
+  "type": "object",
+  "required": ["id", "ts", "kind", "source", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^evt_[A-Za-z0-9]+$" },
+    "ts": { "type": "string", "format": "date-time" },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "turn_open",
+        "turn_close",
+        "affect",
+        "activation",
+        "resonance",
+        "crossing",
+        "bid",
+        "veto",
+        "arbitrate",
+        "inject",
+        "sync_check",
+        "outcome",
+        "dream",
+        "error"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "description": "Emitting worker or complex, e.g. psychoid, synchronicity, shadow, arbiter."
+    },
+    "priority": { "type": "number", "minimum": 0, "maximum": 1, "default": 0 },
+    "payload": { "type": "object", "additionalProperties": true },
+    "caused_by": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^evt_[A-Za-z0-9]+$" },
+      "description": "Causal DAG parents — enables replay and audit."
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "session": { "type": "string" },
+        "turn": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

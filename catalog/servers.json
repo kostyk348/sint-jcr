@@ -1,0 +1,370 @@
+{
+  "schema": "sint-jcr/servers-catalog@1",
+  "generated": "2026-09-12",
+  "note": "Complete inventory of the SINT MCP ecosystem as surveyed on 2026-09-12. Tools are listed as exposed to the host.",
+  "totals": {
+    "servers": 24,
+    "python_loc_approx": 16500,
+    "with_public_repo": 22,
+    "local_only": 2
+  },
+  "layers": ["PERCEPTION", "COGNITION", "MEMORY", "ACTION", "METACOGNITION", "IDENTITY", "FEEDBACK"],
+  "servers": [
+    {
+      "id": "sint-memory",
+      "title": "Structured memory with hash-chain provenance",
+      "layer": "MEMORY",
+      "jcr_role": "Personal unconscious (storage substrate for the Libido Ledger)",
+      "language": "python",
+      "loc": 718,
+      "local_path": "~/.opencode/mcp/sint-memory",
+      "repo": "https://github.com/kostyk348/sint-ua-v2.1",
+      "status": "stable",
+      "tools": [
+        "memory_read_state", "memory_read_blocks", "memory_write_block", "memory_write_session",
+        "memory_update_state", "memory_verify_chain", "memory_search", "memory_stats",
+        "memory_relevance_tiers", "memory_apply_decay", "memory_drift_check", "memory_heat_block",
+        "memory_get_chain_tail", "memory_trace_provenance", "memory_read_block",
+        "git_link_blocks", "git_trace_block", "git_timeline", "git_commit_info"
+      ]
+    },
+    {
+      "id": "sint-prospective",
+      "title": "Prospective memory / intention stack",
+      "layer": "MEMORY",
+      "jcr_role": "Intentionality — what the system means to do",
+      "language": "python",
+      "loc": 358,
+      "repo": "https://github.com/kostyk348/sint-prospective-mcp",
+      "status": "stable",
+      "tools": [
+        "prospective_push", "prospective_pop", "prospective_suspend", "prospective_resume",
+        "prospective_list", "prospective_marker", "prospective_snapshot", "prospective_restore"
+      ]
+    },
+    {
+      "id": "sint-resonance",
+      "title": "Resonance detection (reactive)",
+      "layer": "MEMORY",
+      "jcr_role": "Synchronicity primitive — MISSING continuous monitor + archetypal filter",
+      "language": "python",
+      "loc": 466,
+      "repo": "https://github.com/kostyk348/sint-resonance-mcp",
+      "status": "stable",
+      "tools": [
+        "resonance_index", "resonance_find", "resonance_structural", "resonance_proactive",
+        "resonance_domains", "resonance_stats"
+      ]
+    },
+    {
+      "id": "sint-dream",
+      "title": "Offline consolidation",
+      "layer": "FEEDBACK",
+      "jcr_role": "Individuation / dream cycle",
+      "language": "python",
+      "loc": 264,
+      "repo": "https://github.com/kostyk348/sint-dream-mcp",
+      "status": "stable",
+      "tools": [
+        "dream_consolidate", "dream_error_patterns", "dream_generalize", "dream_report",
+        "dream_skill_suggestions", "dream_store"
+      ]
+    },
+    {
+      "id": "sint-forest",
+      "title": "Experience ensemble (random-forest bagging)",
+      "layer": "FEEDBACK",
+      "jcr_role": "Experience trees for approach voting",
+      "language": "python",
+      "loc": 359,
+      "repo": "https://github.com/kostyk348/sint-forest-mcp",
+      "status": "stable",
+      "tools": [
+        "forest_learn", "forest_sample_trees", "forest_vote_on_approaches", "forest_stats",
+        "forest_consolidate_similar", "forest_forget_weak", "forest_seed"
+      ]
+    },
+    {
+      "id": "sint-historian",
+      "title": "Cross-session work analyst",
+      "layer": "FEEDBACK",
+      "jcr_role": "Temporal memory / drift analysis",
+      "language": "python",
+      "loc": 337,
+      "repo": "https://github.com/kostyk348/sint-historian-mcp",
+      "status": "stable",
+      "tools": [
+        "recent_sessions", "session_stats", "project_timeline", "pattern_search",
+        "work_report", "drift_analysis"
+      ]
+    },
+    {
+      "id": "sint-epistemic",
+      "title": "Epistemic status tracking",
+      "layer": "METACOGNITION",
+      "jcr_role": "Belief status (verified/inferred/assumed) and calibration",
+      "language": "python",
+      "loc": 308,
+      "repo": "https://github.com/kostyk348/sint-epistemic-mcp",
+      "status": "stable",
+      "tools": [
+        "epistemic_register", "epistemic_status", "epistemic_calibrate", "epistemic_gaps",
+        "epistemic_graph", "epistemic_stats"
+      ]
+    },
+    {
+      "id": "sint-liquid-mcp",
+      "title": "Liquid memory — belief revision",
+      "layer": "METACOGNITION",
+      "jcr_role": "Contradiction detection and revision chain",
+      "language": "python",
+      "loc": 345,
+      "repo": "https://github.com/kostyk348/sint-liquid-mcp",
+      "status": "stable",
+      "tools": [
+        "liquid_belief", "liquid_query", "liquid_contradict", "liquid_resolve",
+        "liquid_revise", "liquid_history", "liquid_domains", "liquid_stats"
+      ]
+    },
+    {
+      "id": "sint-dso-router",
+      "title": "Deterministic task router (zero LLM)",
+      "layer": "COGNITION",
+      "jcr_role": "Register/domain classification",
+      "language": "python",
+      "loc": 325,
+      "repo": "https://github.com/kostyk348/sint-dso-router",
+      "status": "stable",
+      "tools": ["dso_route", "dso_domain_stats", "dso_learn_rule", "dso_register_stats", "dso_test"]
+    },
+    {
+      "id": "sint-dso-validator",
+      "title": "Deterministic validator (zero LLM)",
+      "layer": "METACOGNITION",
+      "jcr_role": "Register/schema/quality gate",
+      "language": "python",
+      "loc": 422,
+      "repo": "https://github.com/kostyk348/sint-dso-validator",
+      "status": "stable",
+      "tools": [
+        "dso_validate_register", "dso_validate_schema", "dso_validate_quality",
+        "dso_register_requirements", "dso_suggest_fix", "dso_validator_stats"
+      ]
+    },
+    {
+      "id": "sint-dso-matcher",
+      "title": "Deterministic matcher / voting (zero LLM)",
+      "layer": "COGNITION",
+      "jcr_role": "Similarity primitive — seed of the Arbiter",
+      "language": "python",
+      "loc": 384,
+      "repo": "https://github.com/kostyk348/sint-dso-matcher",
+      "status": "stable",
+      "tools": [
+        "dso_match", "dso_vote", "dso_fingerprint", "dso_similarity",
+        "dso_domains", "dso_matcher_stats"
+      ]
+    },
+    {
+      "id": "sint-dso-swarm",
+      "title": "DAG swarm orchestrator",
+      "layer": "COGNITION",
+      "jcr_role": "Complex coordination (DAG, no bus competition)",
+      "language": "python",
+      "loc": 426,
+      "repo": "https://github.com/kostyk348/sint-dso-swarm",
+      "status": "stable",
+      "tools": [
+        "dso_swarm_process", "dso_swarm_parallel", "dso_swarm_stats",
+        "dso_swarm_graph", "dso_swarm_status"
+      ]
+    },
+    {
+      "id": "sint-llm-swarm",
+      "title": "LLM swarm with 8 SINT-intrinsic roles",
+      "layer": "COGNITION",
+      "jcr_role": "Complexes (ensemble, averages rather than bargains)",
+      "language": "python",
+      "loc": 813,
+      "repo": "https://github.com/kostyk348/sint-llm-swarm",
+      "status": "stable",
+      "tools": [
+        "llm_swarm_process", "llm_swarm_debate", "llm_swarm_synthesize",
+        "llm_swarm_roles", "llm_swarm_stats", "llm_swarm_config"
+      ]
+    },
+    {
+      "id": "sint-self",
+      "title": "Vector character DB (operative character)",
+      "layer": "IDENTITY",
+      "jcr_role": "Persona — must have utility separated from Ego",
+      "language": "python",
+      "loc": 279,
+      "repo": "https://github.com/kostyk348/sint-self-mcp",
+      "status": "stable",
+      "tools": ["self_identity", "self_recall", "self_teach", "self_seed", "self_profile"]
+    },
+    {
+      "id": "sint-re-graph",
+      "title": "Semantic binary graph + DataTrace taint",
+      "layer": "PERCEPTION",
+      "jcr_role": "Binary → semantic graph",
+      "language": "python",
+      "loc": 1851,
+      "repo": "https://github.com/kostyk348/sint-re-graph-mcp",
+      "status": "stable",
+      "tools": [
+        "build_graph", "find_patterns", "summarize", "query_semantic", "trace_forward",
+        "trace_backward", "get_delta", "get_subgraph", "import_datatrace",
+        "save_graph", "load_graph", "list_graphs", "export_graph"
+      ]
+    },
+    {
+      "id": "g-tools",
+      "title": "Zero-copy RE recon (mmap + AVX2 SIMD)",
+      "layer": "PERCEPTION",
+      "jcr_role": "Raw file/data recon engine",
+      "language": "python-c",
+      "loc": 575,
+      "local_path": "~/.opencode/mcp/g-tools",
+      "repo": "https://github.com/kostyk348/g-tools",
+      "status": "stable",
+      "tools": [
+        "g_recon", "g_strings", "g_unicode", "g_entropy_profile", "g_sections", "g_scan",
+        "g_bytes", "g_xor", "g_hash", "g_hist", "g_diff", "g_grep_lines", "g_hex_dump"
+      ]
+    },
+    {
+      "id": "sint-crypto",
+      "title": "Cipher knowledge base + detection",
+      "layer": "PERCEPTION",
+      "jcr_role": "Crypto pattern knowledge",
+      "language": "python",
+      "loc": 902,
+      "repo": "https://github.com/kostyk348/sint-crypto-mcp",
+      "status": "stable",
+      "tools": [
+        "list_ciphers", "get_cipher_info", "detect_crypto", "analyze_data_entropy",
+        "compare_ciphers", "generate_implementation", "validate_implementation",
+        "get_test_vectors", "side_channel_notes"
+      ]
+    },
+    {
+      "id": "sint-algo",
+      "title": "Algorithm / paper / patent knowledge",
+      "layer": "PERCEPTION",
+      "jcr_role": "Collective-unconscious seed (patterns, not content)",
+      "language": "python",
+      "loc": 1019,
+      "repo": "https://github.com/kostyk348/sint-algo-mcp",
+      "status": "stable",
+      "tools": [
+        "search_algorithm", "get_implementations", "get_paper", "get_patent",
+        "describe_middleware", "ingest", "stats", "add_note"
+      ]
+    },
+    {
+      "id": "sint-spec",
+      "title": "RFC / binary format knowledge",
+      "layer": "PERCEPTION",
+      "jcr_role": "Spec knowledge base",
+      "language": "python",
+      "loc": 429,
+      "repo": "https://github.com/kostyk348/sint-spec-mcp",
+      "status": "stable",
+      "tools": ["search_spec", "get_rfc", "describe_format", "ingest", "stats", "add_note"]
+    },
+    {
+      "id": "sint-embed",
+      "title": "MCU / RTOS knowledge + codegen",
+      "layer": "PERCEPTION",
+      "jcr_role": "Embedded knowledge base",
+      "language": "python",
+      "loc": 605,
+      "repo": "https://github.com/kostyk348/sint-embed-mcp",
+      "status": "stable",
+      "tools": [
+        "list_mcus_tool", "get_mcu_info", "list_rtoses_tool", "get_rtos_info",
+        "compare_rtoses", "recommend_rtos", "gen_linker", "gen_startup"
+      ]
+    },
+    {
+      "id": "sint-devflow",
+      "title": "Feature pipelines, TDD, review, commits",
+      "layer": "ACTION",
+      "jcr_role": "Action planning and code quality",
+      "language": "python",
+      "loc": 1384,
+      "repo": "https://github.com/kostyk348/sint-devflow-mcp",
+      "status": "stable",
+      "tools": [
+        "plan_feature", "get_next_action", "update_step", "make_commit_message",
+        "commit_conventions", "code_review", "get_style_rules", "discover_edge_cases",
+        "tdd_guide", "list_languages"
+      ]
+    },
+    {
+      "id": "ada-spark",
+      "title": "Ada SPARK formal verification (GNATprove, Alire)",
+      "layer": "ACTION",
+      "jcr_role": "Formal verification effector",
+      "language": "python",
+      "loc": 2257,
+      "repo": "https://github.com/kostyk348/ada-spark-mcp-server",
+      "status": "stable",
+      "tools": [
+        "spark_new_project", "spark_build", "spark_prove", "spark_check", "spark_parse",
+        "spark_symbols", "spark_project_info", "spark_proof_summary", "spark_clean",
+        "spark_add_dep", "spark_list_deps"
+      ]
+    },
+    {
+      "id": "sint-kicad",
+      "title": "PCB design (KiCad) — 28 tools",
+      "layer": "ACTION",
+      "jcr_role": "Hardware design effector",
+      "language": "python",
+      "loc": 1042,
+      "local_path": "/home/lain/sint-kicad-mcp",
+      "repo": null,
+      "status": "stable (local only)",
+      "tools": [
+        "board_new", "board_open", "board_save", "board_info", "board_outline",
+        "board_set_design_rules", "fp_search", "fp_place", "fp_move", "fp_rotate",
+        "fp_list", "fp_set_value", "net_assign", "track_add", "via_add", "zone_add",
+        "zone_fill", "drc_run", "drc_tracks", "export_gerbers", "export_svg",
+        "export_3d", "export_pos", "spice_netlist", "spice_run", "autoroute_run"
+      ]
+    },
+    {
+      "id": "sint-marketplace-mcp",
+      "title": "Cross-instance knowledge/idea marketplace",
+      "layer": "ACTION",
+      "jcr_role": "Transport for the collective-unconscious library",
+      "language": "python",
+      "loc": 705,
+      "repo": "https://github.com/kostyk348/sint-marketplace-mcp",
+      "status": "stable",
+      "tools": [
+        "marketplace_search", "marketplace_publish", "marketplace_stats",
+        "marketplace_pull", "marketplace_subscribe", "marketplace_outbox",
+        "marketplace_export"
+      ]
+    },
+    {
+      "id": "rev-mcp",
+      "title": "Cell-based reverse engineering (Rust)",
+      "layer": "PERCEPTION",
+      "jcr_role": "Function/call-graph RE",
+      "language": "rust",
+      "loc": null,
+      "local_path": "~/mime-os/target/release/rev-mcp",
+      "repo": "https://github.com/kostyk348/mime-os",
+      "status": "stable",
+      "tools": [
+        "cluster", "diff", "get_callees", "get_callers",
+        "get_function", "graph", "types", "wave"
+      ]
+    }
+  ]
+}
