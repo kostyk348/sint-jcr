@@ -67,6 +67,12 @@ class JCRConfig:
     def dream_path(self) -> Path:
         return self.home / "dream.db"
 
+    def invariant_path(self) -> Path:
+        return self.home / "invariants.db"
+
+    def shadow_path(self) -> Path:
+        return self.home / "shadow.db"
+
     def ensure_home(self) -> None:
         self.home.mkdir(parents=True, exist_ok=True)
         self.spool_dir().mkdir(parents=True, exist_ok=True)

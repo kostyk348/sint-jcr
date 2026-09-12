@@ -12,14 +12,18 @@ GET  /params
 GET  /character
 GET  /telemetry
 GET  /proposals
+GET  /invariants
 POST /observe   {"text": "...", "session": "...", "turn": 0}
 POST /remember  {"content": "...", "register": "FACT", "project": "..."}
 POST /plan      {"text": "...", "k": 8}
 POST /compile   {"text": "...", "budget": 1200, "k": 8}
 POST /veto      {"tool": "bash", "args": {...}}
+POST /shadow    {"draft": "..."}
 POST /teach     {"statement": "...", "weight": 0.7, "scope": "*", "polarity": 1.0}
 POST /dream     {"min_evidence": 2}
 POST /ratify    {"proposal_id": "p_...", "weight": 0.5}
+POST /selfplay  {"rounds": 3}
+POST /ratify_invariant {"invariant_id": "inv_..."}
 POST /events    {"since": 0, "kinds": ["activation"], "limit": 200}
 POST /outcome   {"node_ids": [...], "useful": true, "turn_id": "turn_..."}
 
@@ -73,6 +77,8 @@ def _make_handler(rt: Runtime):
                 return self._send(200, rt.telemetry())
             if self.path == "/proposals":
                 return self._send(200, {"proposals": rt.trait_proposals()})
+            if self.path == "/invariants":
+                return self._send(200, {"invariants": rt.invariants_list()})
             self._send(404, {"error": "not found"})
 
         def do_POST(self) -> None:  # noqa: N802
@@ -108,6 +114,12 @@ def _make_handler(rt: Runtime):
                     return self._send(200, rt.dream_consolidate(int(b.get("min_evidence", 2))))
                 if self.path == "/ratify":
                     return self._send(200, rt.ratify(b["proposal_id"], float(b.get("weight", 0.5))) or {"error": "not found or already ratified"})
+                if self.path == "/selfplay":
+                    return self._send(200, rt.selfplay_run(int(b.get("rounds", 3))))
+                if self.path == "/shadow":
+                    return self._send(200, rt.shadow_review(b.get("draft", "")))
+                if self.path == "/ratify_invariant":
+                    return self._send(200, {"ratified": rt.ratify_invariant(b["invariant_id"])})
             except KeyError as exc:
                 return self._send(400, {"error": f"missing field {exc}"})
             except Exception as exc:  # noqa: BLE001

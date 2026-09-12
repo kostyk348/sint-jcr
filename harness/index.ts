@@ -103,11 +103,20 @@ export default (async ({ project }) => {
       }
     },
 
-    // H3 — the veto: deny or gate a tool call
+    // H3 — the veto: deny or gate a tool call. The artifact Shadow can also veto
+    // (only if its critique carries a confirmed, costly signal).
     "permission.ask": async (input, output) => {
       const anyIn = input as any
       const tool = anyIn?.tool ?? anyIn?.type ?? anyIn?.permission ?? "unknown"
-      const decision = await jcr("/veto", { tool, args: anyIn })
+      const draft = typeof anyIn?.args === "string" ? anyIn.args : JSON.stringify(anyIn?.args ?? anyIn ?? {})
+      const [decision, shadow] = await Promise.all([
+        jcr("/veto", { tool, args: anyIn }),
+        jcr("/shadow", { draft }),
+      ])
+      if (shadow?.veto) {
+        output.status = "deny"
+        return
+      }
       applyVeto(output, decision)
     },
 

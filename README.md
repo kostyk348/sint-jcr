@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-compatible-blue)](https://modelcontextprotocol.io)
 [![Ecosystem](https://img.shields.io/badge/ecosystem-24_MCP_servers-blueviolet)](#-the-ecosystem)
-[![Status](https://img.shields.io/badge/harness-H0--H6_running-brightgreen)](#-roadmap)
+[![Status](https://img.shields.io/badge/harness-H0--H7_running-brightgreen)](#-roadmap)
 [![Theory](https://img.shields.io/badge/game_theory-7_formalisms-success)](#-game-theory-of-the-psyche)
 
 </div>
@@ -278,9 +278,10 @@ Phases 0–4 of the harness roadmap are **running**, not just specified:
 
 ```bash
 cd core
-python3 -m unittest discover -s tests          # 57/57 green
+python3 -m unittest discover -s tests          # 75/75 green
 node --test ../harness/directives.test.ts      # 8/8 green
 python3 -m jcr_core.daemon                     # http://127.0.0.1:8765
+python3 -m jcr_core.eval --samples samples.json  # persona falsification
 ```
 
 - **Bus = hash-chained `.eml`** (`MimeSpool`) — the source of truth. It is a valid EML-IPC
@@ -300,8 +301,16 @@ python3 -m jcr_core.daemon                     # http://127.0.0.1:8765
   `GET /telemetry`, `POST /dream`, `GET /proposals`, `POST /ratify`.
 - **Falsification helpers** — `ablation_delta`, `portability_consistency`, `sycophancy_rate`:
   the measurements that decide whether a personality trait is real or decorative.
+- **Artifact Shadow** — a critic with **costly signaling**: only a critique carrying a
+  confirmed, falsifiable artifact can veto. Cheap talk is logged with zero weight. This is
+  the mechanism that makes disagreement credible (and explains why LLM critics hallucinate).
+- **Self-play hardening** — an adversary generates breaking inputs; the guard system learns
+  *minimal* counterexample patterns with a no-false-positive constraint. Verified: veto
+  robustness 0.75 → 1.0 over rounds, no per-example human labels.
+- **Persona evaluation** — `python -m jcr_core.eval --samples …` (offline) or live against an
+  OpenAI-compatible endpoint: ablation + portability + sycophancy verdicts.
 - **Harness** — real opencode plugin wired to `chat.message`, `system.transform`,
-  `messages.transform`, `chat.params`, `permission.ask`, `tool.execute.after`.
+  `messages.transform`, `chat.params`, `permission.ask` (veto + Shadow), `tool.execute.after`.
 
 **Tooling:** LSP is enabled (opencode `lsp` config) with `pyright-langserver` for Python
 diagnostics; `clangd` and `rust-analyzer` are available for the C/Rust components.

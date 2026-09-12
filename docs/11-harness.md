@@ -190,6 +190,7 @@ not servers — they are the body.
 | H4 | Context compiler: `experimental.chat.messages.transform` | traits+resonant nodes assembled under budget | ✅ |
 | H5 | Telemetry: compliance + dissent events | dashboard of harness behavior | ✅ `/telemetry` |
 | H6 | Character ledger: traits injected, drift measured | personality survives a model swap | ✅ + auto-induction (`DreamCycle`) |
+| H7 | Adversarial hardening: artifact Shadow + self-play | only costly, confirmed critique can veto; guards self-improve | ✅ |
 
 The Python core (Phases H0–H1) and the ledger are the foundation; the plugin (H2+) is what makes
 it a *harness* rather than another server.

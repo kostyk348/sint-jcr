@@ -22,6 +22,8 @@ from jcr_core.induction import DreamCycle
 from jcr_core.ledger import LibidoLedger
 from jcr_core.mimespool import MimeSpool
 from jcr_core.psychoid import PsychoidSampler, veto_decision
+from jcr_core.selfplay import InvariantStore, SelfPlay
+from jcr_core.shadow import Shadow, ShadowLedger
 from jcr_core.types import Event, EventKind, Register
 
 
@@ -42,6 +44,10 @@ class Runtime:
         self.dream = DreamCycle(self.cfg.dream_path(), self.character)
         self.psychoid = PsychoidSampler()
         self.compiler = ContextCompiler(self.ledger, self.character, self.cfg)
+        self.invariants = InvariantStore(self.cfg.invariant_path())
+        self.selfplay = SelfPlay(self.invariants)
+        self.shadow_ledger = ShadowLedger(self.cfg.shadow_path())
+        self.shadow = Shadow(ledger=self.shadow_ledger)
         self.started = time.time()
         self._last_turn: str | None = None
 
@@ -106,12 +112,34 @@ class Runtime:
         return {"affect": asdict(affect), "params": params}
 
     def veto(self, tool: str, args: object = None) -> dict:
-        """Veto decision for a tool call (applied by the harness at permission.ask)."""
-        affect = self.psychoid.sample()
-        decision = veto_decision(tool, args, affect)
+        """Veto decision for a tool call (applied by the harness at permission.ask).
+
+        Consults learned invariants first (self-play hardened), then the
+        deterministic rules.
+        """
+        text = f"{tool} {args}"
+        learned = self.invariants.matches(text)
+        if learned:
+            decision = {"status": "deny", "rule": "learned-invariant", "reason": f"learned harmful pattern {learned!r}"}
+        else:
+            affect = self.psychoid.sample()
+            decision = veto_decision(tool, args, affect)
         if decision["status"] != "allow":
             self.bus.publish(Event(kind=EventKind.VETO, source="arbiter", priority=1.0, payload={"tool": tool, "decision": decision}))
         return decision
+
+    def selfplay_run(self, rounds: int = 3, per_round: int | None = None) -> dict:
+        """Adversarial hardening: Shadow generates breaking inputs, guards learn."""
+        report = self.selfplay.run(rounds=rounds, per_round=per_round)
+        self.bus.publish(Event(kind=EventKind.DREAM, source="selfplay", payload=report))
+        return report
+
+    def shadow_review(self, draft: str) -> dict:
+        """Artifact Shadow: only confirmed (costly) critiques can veto."""
+        out = self.shadow.review(draft)
+        if out["veto"]:
+            self.bus.publish(Event(kind=EventKind.VETO, source="shadow", priority=1.0, payload={"draft_len": len(draft), "claims": [c["claim"] for c in out["veto_worthy"]]}))
+        return out
 
     def compile(self, text: str = "", budget_tokens: int = 1200, k: int = 8) -> dict:
         """Context compiler: budgeted assembly for the next model call.
@@ -155,6 +183,12 @@ class Runtime:
             self.bus.publish(Event(kind=EventKind.DREAM, source="character", payload={"ratified": out}))
         return out
 
+    def invariants_list(self, ratified_only: bool = False) -> list[dict]:
+        return [asdict(i) for i in self.invariants.list(ratified_only=ratified_only)]
+
+    def ratify_invariant(self, invariant_id: str) -> bool:
+        return self.invariants.ratify(invariant_id)
+
     # ------------------------------------------------------------------- read
 
     def state(self) -> dict:
@@ -166,6 +200,8 @@ class Runtime:
             "ledger": self.ledger.stats(),
             "character": self.character.stats(),
             "telemetry": self.dream.telemetry(),
+            "shadow": self.shadow_ledger.stats(),
+            "invariants": {"total": len(self.invariants.list()), "ratified": len(self.invariants.list(ratified_only=True))},
         }
 
     def events(self, since: int = 0, kinds: list[str] | None = None, limit: int = 200) -> list[dict]:
@@ -180,6 +216,8 @@ class Runtime:
 
     def close(self) -> None:
         self.dream.close()
+        self.invariants.close()
+        self.shadow_ledger.close()
         self.ledger.close()
         self.character.close()
         self.log.close()

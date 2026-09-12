@@ -105,6 +105,24 @@ def jcr_ratify(proposal_id: str, weight: float = 0.5) -> dict:
 
 
 @mcp.tool()
+def jcr_selfplay(rounds: int = 3) -> dict:
+    """Adversarial hardening: generate breaking inputs and learn minimal guard patterns."""
+    return runtime().selfplay_run(rounds)
+
+
+@mcp.tool()
+def jcr_invariants() -> list:
+    """Learned guard patterns (self-play), with ratification status."""
+    return runtime().invariants_list()
+
+
+@mcp.tool()
+def jcr_shadow_review(draft: str) -> dict:
+    """Artifact Shadow: critique a draft; only confirmed (costly) signals can veto."""
+    return runtime().shadow_review(draft)
+
+
+@mcp.tool()
 def jcr_poll_events(since: int = 0, kinds: list[str] | None = None, limit: int = 200) -> dict:
     """Drain bus events newer than `since`."""
     return {"events": runtime().events(since=since, kinds=kinds, limit=limit)}

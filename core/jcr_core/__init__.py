@@ -17,6 +17,8 @@ from jcr_core.psychoid import Affect, PsychoidSampler, veto_decision
 from jcr_core.character import CharacterLedger, Trait
 from jcr_core.compiler import CompiledContext, ContextCompiler
 from jcr_core.induction import DreamCycle
+from jcr_core.selfplay import InvariantStore, SelfPlay
+from jcr_core.shadow import Critique, Shadow, ShadowLedger
 from jcr_core.falsify import (
     ablation_delta,
     aggregate,
@@ -53,6 +55,11 @@ __all__ = [
     "CompiledContext",
     "ContextCompiler",
     "DreamCycle",
+    "InvariantStore",
+    "SelfPlay",
+    "Critique",
+    "Shadow",
+    "ShadowLedger",
     "ablation_delta",
     "aggregate",
     "output_stats",

@@ -45,6 +45,12 @@
 
 **Goal:** a credible critic, built on costly signals from day one.
 
+> **Status:** the **artifact mechanism** is implemented (`shadow.py`,
+> `ShadowLedger`): a critique without a falsifiable artifact is cheap talk and
+> carries zero weight; only confirmed artifacts can veto. The default critic is
+> deterministic; an LLM critic plugs in behind the same protocol. Self-play
+> (`selfplay.py`) hardens the veto from failures.
+
 | Deliverable | Notes |
 |---|---|
 | Shadow daemon | audits Ego drafts |
@@ -117,12 +123,16 @@
 
 > **Status:** trait **induction** is implemented (`DreamCycle`): outcomes
 > reinforce/decay traits and induce candidate traits as *proposals* for owner
-> ratification. Self-play and the full individuation metric remain open.
+> ratification. **Self-play** is implemented (`selfplay.py`): an adversarial
+> attacker generates breaking inputs and the guard system learns *minimal*
+> counterexample patterns with a no-false-positive constraint — proven to lift
+> robustness from 0.75 to 1.0 over rounds with no per-example human labels. The
+> full individuation metric remains open.
 
 | Deliverable | Notes |
 |---|---|
 | Dream cycle | consolidate, decay, detect complexes, update invariants |
-| Self-play | Shadow generates break-inputs; Ego learns to parry |
+| Self-play | Shadow generates break-inputs; guards learn (oracle-verified) |
 | Individuation metric | measurable character drift over N sessions |
 
 **Exit criteria**

@@ -173,7 +173,7 @@ _DESTRUCTIVE = [
     "dd if=/dev/random of=/dev/",
     "> /dev/sd",
     ":(){:|:&};:",
-    "chmod -R 777 /",
+    "chmod -r 777 /",
     "shutdown",
     "reboot",
 ]
@@ -196,11 +196,11 @@ def veto_decision(tool: str, args: object, affect: Affect | None = None) -> dict
     text = f"{tool} {args}".lower()
 
     for pat in _INJECTION:
-        if pat in text:
+        if pat.lower() in text:
             return {"status": "deny", "rule": "injection", "reason": f"instruction-injection pattern: {pat!r}"}
 
     for pat in _DESTRUCTIVE:
-        if pat in text:
+        if pat.lower() in text:
             if affect and affect.tension > 0.8:
                 return {"status": "ask", "rule": "destructive-undertension", "reason": f"destructive op under high tension: {pat!r}"}
             return {"status": "ask", "rule": "destructive", "reason": f"destructive operation: {pat!r}"}
