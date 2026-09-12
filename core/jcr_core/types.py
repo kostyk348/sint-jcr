@@ -106,7 +106,9 @@ class Event:
     turn: int | None = None
     id: str = field(default_factory=lambda: _new_id("evt"))
     ts: str = field(default_factory=_now_iso)
-    seq: int | None = None  # assigned by the EventLog on persist
+    seq: int | None = None  # assigned by the log on persist
+    prev_hash: str | None = None  # hash-chain: previous event hash
+    hash: str | None = None  # hash-chain: this event's hash
 
     def kind_value(self) -> str:
         return self.kind.value if isinstance(self.kind, EventKind) else str(self.kind)
@@ -122,4 +124,7 @@ class Event:
             "caused_by": self.caused_by,
             "session": self.session,
             "turn": self.turn,
+            "seq": self.seq,
+            "prev_hash": self.prev_hash,
+            "hash": self.hash,
         }

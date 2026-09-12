@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-compatible-blue)](https://modelcontextprotocol.io)
 [![Ecosystem](https://img.shields.io/badge/ecosystem-24_MCP_servers-blueviolet)](#-the-ecosystem)
-[![Status](https://img.shields.io/badge/status-phase_0_running-brightgreen)](#-roadmap)
+[![Status](https://img.shields.io/badge/harness-H0--H4_running-brightgreen)](#-roadmap)
 [![Theory](https://img.shields.io/badge/game_theory-7_formalisms-success)](#-game-theory-of-the-psyche)
 
 </div>
@@ -254,7 +254,8 @@ sint-jcr/
 │   ├── 08-ecosystem.md            full 24-server catalog mapped to layers
 │   ├── 09-roadmap.md              phased build plan (ego first, then Self)
 │   ├── 10-risks.md                honest limitations, anti-patterns, failure modes
-│   └── 11-harness.md              what a harness is; MCP vs executive; the hook surface
+│   ├── 11-harness.md              what a harness is; MCP vs executive; the hook surface
+│   └── 12-character.md            where personality lives; traits, drift, individuation
 ├── schemas/                       machine-readable contracts
 │   ├── node.schema.json           libido-ledger memory node
 │   ├── event.schema.json          bus event envelope
@@ -273,25 +274,32 @@ sint-jcr/
 
 ### What is actually built today
 
-Phase 0 is **running**, not just specified:
+Phases 0–4 of the harness roadmap are **running**, not just specified:
 
 ```bash
 cd core
-python3 -m unittest discover -s tests -v     # 16/16 green
-python3 -m jcr_core.daemon                   # http://127.0.0.1:8765
+python3 -m unittest discover -s tests          # 41/41 green
+node --test ../harness/directives.test.ts      # 8/8 green
+python3 -m jcr_core.daemon                     # http://127.0.0.1:8765
 ```
 
-- **Bus** — append-only SQLite event log + pub/sub, subscriber isolation, replay.
-- **Libido Ledger** — energy field with exponential decay, resonance injection,
-  edge propagation, reward/penalty, **repression (not deletion)**, and a libido
-  economy (`charge`/`grant`) ready for the VCG auction.
-- **Daemon** — JSON-over-localhost surface the harness plugin calls.
-- **Harness** — real opencode plugin wired to `chat.message`,
-  `experimental.chat.system.transform`, `tool.execute.after`; `chat.params` and
-  `permission.ask` are stubbed for Phases 1 & 3.
+- **Bus = hash-chained `.eml`** (`MimeSpool`) — the source of truth. It is a valid EML-IPC
+  message, so `emlbox ipc list ~/.local/share/jcr/bus` reads it natively and the same event
+  can travel over the SMTP/mesh transport. SQLite is demoted to an *optional index*.
+- **Libido Ledger** — energy field with exponential decay, resonance injection, edge
+  propagation, reward/penalty, **repression (not deletion)**, and a libido economy
+  (`charge`/`grant`) ready for the VCG auction.
+- **Psychoid** — reads procfs (CPU/memory/load), reduces it to an affect vector, and maps it
+  monotonically to generation parameters.
+- **Veto** — deterministic rules (`permission.ask`): injection → deny, destructive → gate.
+- **Context compiler** — budgeted assembly: character traits first, then resonant nodes.
+- **Character Ledger** — dispositions with weights and evidence, injected by the harness and
+  revised by outcomes. **Personality lives outside the model**, so it survives a model swap.
+- **Harness** — real opencode plugin wired to `chat.message`, `system.transform`,
+  `messages.transform`, `chat.params`, `permission.ask`, `tool.execute.after`.
 
-Everything else (psychoid, arbiter, synchronicity, transcendent function) is
-specified with falsification tests and not yet coded — by design.
+Everything else (arbiter, synchronicity monitor, transcendent function, auto-induction of
+traits) is specified with falsification tests and not yet coded — by design.
 
 ---
 

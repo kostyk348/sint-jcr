@@ -181,14 +181,15 @@ not servers — they are the body.
 
 ## 10. Phase 0 harness milestones
 
-| Milestone | Deliverable | Done when |
-|---|---|---|
-| H0 | Daemon skeleton: bus + event log | events persist and replay |
-| H1 | HTTP/IPC surface (`/state`, `/observe`, `/plan`, `/events`, `/outcome`) | plugin can call it |
-| H2 | `jcr-harness` plugin: `chat.message`, `system.transform`, `tool.execute.after` | state flows into the loop |
-| H3 | Enforcement: `chat.params` + `permission.ask` | affect changes params; veto blocks a tool |
-| H4 | Context compiler: `experimental.chat.messages.transform` | resonant nodes promoted, measured |
-| H5 | Telemetry: compliance + dissent events | dashboard of harness behavior |
+| Milestone | Deliverable | Done when | Status |
+|---|---|---|---|
+| H0 | Daemon skeleton: bus + event log | events persist and replay | ✅ `.eml` hash-chained spool |
+| H1 | HTTP/IPC surface (`/state`, `/observe`, `/plan`, `/compile`, `/veto`, `/params`) | plugin can call it | ✅ |
+| H2 | `jcr-harness` plugin: `chat.message`, `system.transform`, `tool.execute.after` | state flows into the loop | ✅ |
+| H3 | Enforcement: `chat.params` + `permission.ask` | affect changes params; veto blocks a tool | ✅ |
+| H4 | Context compiler: `experimental.chat.messages.transform` | traits+resonant nodes assembled under budget | ✅ |
+| H5 | Telemetry: compliance + dissent events | dashboard of harness behavior | ⏳ |
+| H6 | Character ledger: traits injected, drift measured | personality survives a model swap | ✅ ledger; ⏳ auto-induction |
 
 The Python core (Phases H0–H1) and the ledger are the foundation; the plugin (H2+) is what makes
 it a *harness* rather than another server.

@@ -51,6 +51,36 @@ def jcr_plan(text: str = "", k: int = 8) -> dict:
 
 
 @mcp.tool()
+def jcr_compile(text: str = "", budget: int = 1200, k: int = 8) -> dict:
+    """Budgeted context assembly: character traits + resonant nodes + system addendum."""
+    return runtime().compile(text, budget_tokens=budget, k=k)
+
+
+@mcp.tool()
+def jcr_params() -> dict:
+    """Psychoid coupling: current affect vector and derived generation parameters."""
+    return runtime().params()
+
+
+@mcp.tool()
+def jcr_veto(tool: str, args: str = "") -> dict:
+    """Veto decision (allow/ask/deny) for a proposed tool call."""
+    return runtime().veto(tool, args)
+
+
+@mcp.tool()
+def jcr_teach(statement: str, weight: float = 0.5, scope: str = "*", polarity: float = 1.0) -> dict:
+    """Install a disposition into the character ledger (grows the harness personality)."""
+    return runtime().teach(statement, weight=weight, scope=scope, polarity=polarity)
+
+
+@mcp.tool()
+def jcr_character() -> dict:
+    """Character ledger: traits, weights and drift (individuation signal)."""
+    return runtime().character_state()
+
+
+@mcp.tool()
 def jcr_poll_events(since: int = 0, kinds: list[str] | None = None, limit: int = 200) -> dict:
     """Drain bus events newer than `since`."""
     return {"events": runtime().events(since=since, kinds=kinds, limit=limit)}

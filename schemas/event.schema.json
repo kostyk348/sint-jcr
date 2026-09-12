@@ -46,6 +46,19 @@
         "session": { "type": "string" },
         "turn": { "type": "integer", "minimum": 0 }
       }
+    },
+    "seq": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "description": "Monotonic sequence assigned by the spool on persist."
+    },
+    "prev_hash": {
+      "type": ["string", "null"],
+      "description": "Hash-chain link to the previous event's hash (genesis = 16 zeros)."
+    },
+    "hash": {
+      "type": ["string", "null"],
+      "description": "sha256(seq|id|ts|kind|canonical_payload|prev_hash)[:16]."
     }
   }
 }

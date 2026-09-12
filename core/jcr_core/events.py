@@ -1,7 +1,13 @@
 """The resonance bus: an append-only event log with in-process pub/sub.
 
-The log is the source of truth. Any derived state (the ledger) is reproducible by
-replay. This is what makes crash recovery and audit possible, and it is the
+Source of truth is :class:`jcr_core.mimespool.MimeSpool` — a hash-chained
+`.eml` spool (see docs/01-architecture.md §Bus). ``EventLog`` below is a
+*legacy/optional* SQLite table. It is retained as an optional query index, but
+it is no longer the authoritative log: SQLite provides durability, not
+tamper-evidence, and a mutable DB cannot be the immutable source of truth.
+
+The log is the source of truth. Any derived state (the ledger) is reproducible
+by replay. This is what makes crash recovery and audit possible, and it is the
 substrate for the "decisions are observable" property the harness needs.
 """
 
@@ -155,3 +161,7 @@ class Bus:
     def drain(self, since: int = 0, kinds: Iterable[str] | None = None, limit: int = 1000) -> list[Event]:
         """Pull events newer than ``since`` — the read side of push."""
         return self.log.read(since=since, kinds=kinds, limit=limit)
+
+
+#: The SQLite log is kept only as an optional index over the MimeSpool.
+SqliteIndex = EventLog

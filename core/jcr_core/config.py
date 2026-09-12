@@ -25,6 +25,14 @@ class JCRConfig:
 
     home: Path = _default_home()
 
+    # --- bus (source of truth) ---
+    # "eml"    : append-only hash-chained RFC822 spool (default; mesh/mail-ready)
+    # "sqlite" : legacy SQLite table (kept for compatibility / as an index)
+    bus_format: str = os.environ.get("JCR_BUS_FORMAT", "eml")
+
+    # --- character ---
+    character_traits_in_context: int = 5
+
     # --- embedding ---
     embed_dim: int = 256
 
@@ -49,5 +57,13 @@ class JCRConfig:
     def db_path(self) -> Path:
         return self.home / "jcr.db"
 
+    def spool_dir(self) -> Path:
+        """Directory of append-only `.eml` bus messages (EML-IPC compatible)."""
+        return self.home / "bus"
+
+    def character_path(self) -> Path:
+        return self.home / "character.db"
+
     def ensure_home(self) -> None:
         self.home.mkdir(parents=True, exist_ok=True)
+        self.spool_dir().mkdir(parents=True, exist_ok=True)

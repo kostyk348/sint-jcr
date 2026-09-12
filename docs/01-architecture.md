@@ -47,14 +47,45 @@ All internal communication goes through an append-only event log with pub/sub fa
 calls anything directly — modules are decoupled by the bus. This is the concrete meaning of
 "event-oriented network" rather than a call graph.
 
-### Transport options (pick one; the interface is transport-agnostic)
+### The log is `.eml`, not a database
+
+The source of truth is an **append-only, hash-chained `.eml` spool** (one MIME message per
+event), **not** a SQLite table. This follows `mime-os` / EML-IPC
+(`From` / `To` / `X-Event` / `X-EMLBox-Msg` / JSON body) and adds `X-JCR-*` headers for
+sequencing and the chain.
+
+Four reasons, in order of weight:
+
+1. **The source of truth must be tamper-evident.** SQLite gives durability, not integrity.
+   The whole SINT architecture rests on hash-chain provenance, so the chain must live in the
+   log itself — otherwise SQLite is merely an index.
+2. **One artifact, two roles.** An event is a valid EML-IPC message, so the *same file* is a
+   local log entry and a wire message that can travel over emlbox's SMTP/mesh transport
+   (`mail pack`, `sync`). A SQLite row can never be sent to another instance — and the
+   collective-unconscious library is meant to be shared across instances.
+3. **Corruption-proof.** One file per event, atomic `tmp + rename`; a torn write cannot
+   corrupt the log, and header-only scans stay cheap (emlbox tagdb: 2000 records ≈ 10 ms).
+4. **Ecosystem fit.** It is the format `mime-os` already reads; `emlbox ipc list <spool>`
+   sees JCR events natively (verified).
+
+```bash
+$ emlbox ipc list ~/.local/share/jcr/bus
+00000004.evt_...msg.eml  jcr@localhost -> jcr-core@localhost  [sync_check]  {"activated":1,"buffer_len":24}
+```
+
+SQLite is retained only as an **optional index** (`SqliteIndex`) for fast queries — derived
+state, rebuildable by replay, never authoritative.
+
+### Transport
+
+The local spool is the default; the format does not change when the transport does.
 
 | Transport | When |
 |---|---|
-| **In-process asyncio queues + SQLite event log** | v1 default; zero infra |
-| Redis Streams | multi-process, persistence, consumer groups |
-| NATS JetStream | many workers, replay, clustering |
-| ZeroMQ | pure latency, no broker |
+| **Local `.eml` spool (MimeSpool)** | v1 default; zero infra, mesh-ready |
+| emlbox `mail` / SMTP mesh | share events/invariants across instances |
+| emlbox `sync` (TCP delta-sync) | multi-writer chains, LWW merge |
+| Redis Streams / NATS | if a hosted broker is ever needed |
 
 ### Event envelope
 
@@ -188,12 +219,13 @@ functions.
 
 ## 7. Persistence & crash recovery
 
+- **Bus / log:** append-only hash-chained `.eml` spool (`MimeSpool`). It *is* the source of
+  truth; every derived store can be rebuilt by replay. `verify_chain()` detects tampering.
 - **Ledger:** SQLite with a vector extension (`sqlite-vss`/`sqlite-vec`) or a sidecar index;
-  nodes and edges in tables. All writes transactional.
-- **Event log:** append-only JSONL + SQLite index. It *is* the source of truth; ledger state can be
-  rebuilt by replay.
-- **Identity/memory portability:** export = `{nodes, edges, event_log_tail, character_vector}`.
-  Import into another host/provider must reproduce behavior within tolerance (see thesis §5.4).
+  nodes and edges in tables. All writes transactional. **Derived state.**
+- **Character:** SQLite (`character.db`). **Derived state.**
+- **Identity/memory portability:** export = `{spool, ledger, character}`. Import into another
+  host/provider must reproduce behavior within tolerance (see thesis §5.4).
 
 ---
 

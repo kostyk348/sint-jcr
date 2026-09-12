@@ -8,9 +8,14 @@ Endpoints
 ---------
 GET  /health
 GET  /state
+GET  /params
+GET  /character
 POST /observe   {"text": "...", "session": "...", "turn": 0}
 POST /remember  {"content": "...", "register": "FACT", "project": "..."}
 POST /plan      {"text": "...", "k": 8}
+POST /compile   {"text": "...", "budget": 1200, "k": 8}
+POST /veto      {"tool": "bash", "args": {...}}
+POST /teach     {"statement": "...", "weight": 0.7, "scope": "*", "polarity": 1.0}
 POST /events    {"since": 0, "kinds": ["activation"], "limit": 200}
 POST /outcome   {"node_ids": [...], "useful": true}
 
@@ -56,6 +61,10 @@ def _make_handler(rt: Runtime):
                 return self._send(200, {"ok": True})
             if self.path == "/state":
                 return self._send(200, rt.state())
+            if self.path == "/params":
+                return self._send(200, rt.params())
+            if self.path == "/character":
+                return self._send(200, rt.character_state())
             self._send(404, {"error": "not found"})
 
         def do_POST(self) -> None:  # noqa: N802
@@ -67,6 +76,22 @@ def _make_handler(rt: Runtime):
                     return self._send(200, rt.remember(b["content"], b.get("register", "FACT"), b.get("project", "SYSTEM")))
                 if self.path == "/plan":
                     return self._send(200, rt.plan(b.get("text", ""), int(b.get("k", 8))))
+                if self.path == "/compile":
+                    return self._send(200, rt.compile(b.get("text", ""), int(b.get("budget", 1200)), int(b.get("k", 8))))
+                if self.path == "/params":
+                    return self._send(200, rt.params())
+                if self.path == "/veto":
+                    return self._send(200, rt.veto(b.get("tool", ""), b.get("args")))
+                if self.path == "/teach":
+                    return self._send(
+                        200,
+                        rt.teach(
+                            b["statement"],
+                            float(b.get("weight", 0.5)),
+                            b.get("scope", "*"),
+                            float(b.get("polarity", 1.0)),
+                        ),
+                    )
                 if self.path == "/events":
                     return self._send(200, {"events": rt.events(int(b.get("since", 0)), b.get("kinds"), int(b.get("limit", 200)))})
                 if self.path == "/outcome":
