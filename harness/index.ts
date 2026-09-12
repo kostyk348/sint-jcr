@@ -88,10 +88,12 @@ export default (async ({ project }) => {
       if (block) injectIntoMessages(messages, block)
     },
 
-    // CACHE RULE: the system prompt must be byte-stable. Only the deterministic
-    // character block is allowed here — no counters, no uptime, no event counts.
-    // Volatile runtime state belongs in the tail (messages.transform).
+    // CACHE RULE: the system prompt must be byte-stable. We therefore DO NOT
+    // touch it unless explicitly opted in. Even the deterministic character
+    // block is off by default — a single mutation at position 0 invalidates the
+    // entire prefix cache. Set JCR_INJECT_CHARACTER=1 to enable it.
     "experimental.chat.system.transform": async (_input, output) => {
+      if (process.env.JCR_INJECT_CHARACTER !== "1") return
       const character = await jcrGet("/character")
       const block = renderCharacterBlock(character?.traits ?? [])
       if (block) output.system.push(block)
