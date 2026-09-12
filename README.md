@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-compatible-blue)](https://modelcontextprotocol.io)
 [![Ecosystem](https://img.shields.io/badge/ecosystem-24_MCP_servers-blueviolet)](#-the-ecosystem)
-[![Status](https://img.shields.io/badge/status-design_phase-orange)](#-roadmap)
+[![Status](https://img.shields.io/badge/status-phase_0_running-brightgreen)](#-roadmap)
 [![Theory](https://img.shields.io/badge/game_theory-7_formalisms-success)](#-game-theory-of-the-psyche)
 
 </div>
@@ -108,6 +108,11 @@ get **RAG with archetypal branding**.
 ```
 
 `jcr-mcp` is a **port**, not an organism. The organism is `jcr-core`.
+
+> The deeper statement of this principle — why a system with 24 MCP servers and
+> a passive plugin is *many organs and no executive*, and how opencode's hook
+> surface gives JCR real enforcement (veto, context rewrite, parameter control) —
+> is in **[docs/11-harness.md](docs/11-harness.md)**.
 
 ---
 
@@ -248,16 +253,45 @@ sint-jcr/
 │   ├── 07-transcendent-function.md deadlock reframing (the fifth missing layer)
 │   ├── 08-ecosystem.md            full 24-server catalog mapped to layers
 │   ├── 09-roadmap.md              phased build plan (ego first, then Self)
-│   └── 10-risks.md                honest limitations, anti-patterns, failure modes
+│   ├── 10-risks.md                honest limitations, anti-patterns, failure modes
+│   └── 11-harness.md              what a harness is; MCP vs executive; the hook surface
 ├── schemas/                       machine-readable contracts
 │   ├── node.schema.json           libido-ledger memory node
 │   ├── event.schema.json          bus event envelope
 │   └── complex-manifest.schema.json
 ├── catalog/
 │   └── servers.json               the 24 servers, tools, status, layer
+├── core/                          Phase 0 runtime (Python, stdlib-only)
+│   ├── jcr_core/                  bus · ledger · runtime · daemon
+│   ├── jcr_mcp/                   FastMCP facade (advisory port, not executive)
+│   └── tests/                     16 tests — green
+├── harness/                       Phase 0 in-loop executive (opencode TS plugin)
+│   └── index.ts                   system.transform · tool.after · (params/veto reserved)
 ├── LICENSE
 └── .gitignore
 ```
+
+### What is actually built today
+
+Phase 0 is **running**, not just specified:
+
+```bash
+cd core
+python3 -m unittest discover -s tests -v     # 16/16 green
+python3 -m jcr_core.daemon                   # http://127.0.0.1:8765
+```
+
+- **Bus** — append-only SQLite event log + pub/sub, subscriber isolation, replay.
+- **Libido Ledger** — energy field with exponential decay, resonance injection,
+  edge propagation, reward/penalty, **repression (not deletion)**, and a libido
+  economy (`charge`/`grant`) ready for the VCG auction.
+- **Daemon** — JSON-over-localhost surface the harness plugin calls.
+- **Harness** — real opencode plugin wired to `chat.message`,
+  `experimental.chat.system.transform`, `tool.execute.after`; `chat.params` and
+  `permission.ask` are stubbed for Phases 1 & 3.
+
+Everything else (psychoid, arbiter, synchronicity, transcendent function) is
+specified with falsification tests and not yet coded — by design.
 
 ---
 

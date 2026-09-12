@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jcr-core"
+version = "0.1.0"
+description = "SINT-JCR core: event bus + libido ledger (Phase 0). Zero-dependency runtime substrate."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Konstantin (kostyk348)" }]
+keywords = ["agent", "harness", "memory", "cognitive-runtime", "sint"]
+dependencies = []
+
+[project.optional-dependencies]
+mcp = ["fastmcp>=2.0"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+jcr-daemon = "jcr_core.daemon:main"
+
+[tool.setuptools.packages.find]
+include = ["jcr_core*", "jcr_mcp*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

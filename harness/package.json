@@ -1,0 +1,12 @@
+{
+  "name": "jcr-harness",
+  "version": "0.1.0",
+  "description": "SINT-JCR opencode plugin — the in-loop executive hand (context assembly, parameter control, veto).",
+  "type": "module",
+  "main": "index.ts",
+  "license": "MIT",
+  "keywords": ["opencode", "plugin", "harness", "agent", "sint", "jcr"],
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  }
+}
