@@ -64,6 +64,9 @@ class JCRConfig:
     def character_path(self) -> Path:
         return self.home / "character.db"
 
+    def dream_path(self) -> Path:
+        return self.home / "dream.db"
+
     def ensure_home(self) -> None:
         self.home.mkdir(parents=True, exist_ok=True)
         self.spool_dir().mkdir(parents=True, exist_ok=True)

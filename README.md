@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-compatible-blue)](https://modelcontextprotocol.io)
 [![Ecosystem](https://img.shields.io/badge/ecosystem-24_MCP_servers-blueviolet)](#-the-ecosystem)
-[![Status](https://img.shields.io/badge/harness-H0--H4_running-brightgreen)](#-roadmap)
+[![Status](https://img.shields.io/badge/harness-H0--H6_running-brightgreen)](#-roadmap)
 [![Theory](https://img.shields.io/badge/game_theory-7_formalisms-success)](#-game-theory-of-the-psyche)
 
 </div>
@@ -278,7 +278,7 @@ Phases 0–4 of the harness roadmap are **running**, not just specified:
 
 ```bash
 cd core
-python3 -m unittest discover -s tests          # 41/41 green
+python3 -m unittest discover -s tests          # 57/57 green
 node --test ../harness/directives.test.ts      # 8/8 green
 python3 -m jcr_core.daemon                     # http://127.0.0.1:8765
 ```
@@ -295,8 +295,16 @@ python3 -m jcr_core.daemon                     # http://127.0.0.1:8765
 - **Context compiler** — budgeted assembly: character traits first, then resonant nodes.
 - **Character Ledger** — dispositions with weights and evidence, injected by the harness and
   revised by outcomes. **Personality lives outside the model**, so it survives a model swap.
+- **Dream cycle + telemetry** — outcomes reinforce/decay traits; recurring patterns in
+  successful turns are induced as **proposals** (owner-ratified, never auto-installed).
+  `GET /telemetry`, `POST /dream`, `GET /proposals`, `POST /ratify`.
+- **Falsification helpers** — `ablation_delta`, `portability_consistency`, `sycophancy_rate`:
+  the measurements that decide whether a personality trait is real or decorative.
 - **Harness** — real opencode plugin wired to `chat.message`, `system.transform`,
   `messages.transform`, `chat.params`, `permission.ask`, `tool.execute.after`.
+
+**Tooling:** LSP is enabled (opencode `lsp` config) with `pyright-langserver` for Python
+diagnostics; `clangd` and `rust-analyzer` are available for the C/Rust components.
 
 Everything else (arbiter, synchronicity monitor, transcendent function, auto-induction of
 traits) is specified with falsification tests and not yet coded — by design.

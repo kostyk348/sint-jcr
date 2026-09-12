@@ -115,6 +115,10 @@
 
 **Goal:** learn without labels; evolve character.
 
+> **Status:** trait **induction** is implemented (`DreamCycle`): outcomes
+> reinforce/decay traits and induce candidate traits as *proposals* for owner
+> ratification. Self-play and the full individuation metric remain open.
+
 | Deliverable | Notes |
 |---|---|
 | Dream cycle | consolidate, decay, detect complexes, update invariants |

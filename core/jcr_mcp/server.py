@@ -81,6 +81,30 @@ def jcr_character() -> dict:
 
 
 @mcp.tool()
+def jcr_dream(min_evidence: int = 2) -> dict:
+    """Run the dream cycle: reinforce/decay traits from outcomes, induce proposals."""
+    return runtime().dream_consolidate(min_evidence)
+
+
+@mcp.tool()
+def jcr_telemetry() -> dict:
+    """Harness telemetry: turn/label counts, useful rate, open trait proposals."""
+    return runtime().telemetry()
+
+
+@mcp.tool()
+def jcr_proposals() -> list:
+    """Candidate traits induced by the dream cycle, awaiting owner ratification."""
+    return runtime().trait_proposals()
+
+
+@mcp.tool()
+def jcr_ratify(proposal_id: str, weight: float = 0.5) -> dict:
+    """Ratify a proposed trait, installing it as a real disposition."""
+    return runtime().ratify(proposal_id, weight) or {"error": "not found or already ratified"}
+
+
+@mcp.tool()
 def jcr_poll_events(since: int = 0, kinds: list[str] | None = None, limit: int = 200) -> dict:
     """Drain bus events newer than `since`."""
     return {"events": runtime().events(since=since, kinds=kinds, limit=limit)}

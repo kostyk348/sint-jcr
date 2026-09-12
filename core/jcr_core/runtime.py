@@ -18,6 +18,7 @@ from jcr_core.compiler import ContextCompiler
 from jcr_core.config import JCRConfig
 from jcr_core.embedding import Embedder, HashingEmbedder
 from jcr_core.events import Bus, EventLog
+from jcr_core.induction import DreamCycle
 from jcr_core.ledger import LibidoLedger
 from jcr_core.mimespool import MimeSpool
 from jcr_core.psychoid import PsychoidSampler, veto_decision
@@ -38,9 +39,11 @@ class Runtime:
 
         self.ledger = LibidoLedger(self.cfg.db_path(), self.cfg, embedder or HashingEmbedder(self.cfg.embed_dim))
         self.character = CharacterLedger(self.cfg.character_path())
+        self.dream = DreamCycle(self.cfg.dream_path(), self.character)
         self.psychoid = PsychoidSampler()
         self.compiler = ContextCompiler(self.ledger, self.character, self.cfg)
         self.started = time.time()
+        self._last_turn: str | None = None
 
     # ------------------------------------------------------------------ write
 
@@ -74,15 +77,18 @@ class Runtime:
         self.bus.publish(Event(kind=EventKind.RESONANCE, source="runtime", payload={"node_id": node.id, "project": project}))
         return {"node_id": node.id, "tier": node.tier.value, "energy": node.energy}
 
-    def outcome(self, node_ids: list[str], useful: bool) -> dict:
+    def outcome(self, node_ids: list[str], useful: bool, turn_id: str | None = None) -> dict:
         delta = 0.10 if useful else -0.15
         self.ledger.reinforce(node_ids, delta)
         if useful:
             self.psychoid.note_success()
         else:
             self.psychoid.note_error(weight=0.5)
-        self.bus.publish(Event(kind=EventKind.OUTCOME, source="runtime", payload={"node_ids": node_ids, "useful": useful, "delta": delta}))
-        return {"reinforced": len(node_ids), "delta": delta}
+        labelled = turn_id or self._last_turn
+        if labelled:
+            self.dream.label(labelled, useful)
+        self.bus.publish(Event(kind=EventKind.OUTCOME, source="runtime", payload={"node_ids": node_ids, "useful": useful, "delta": delta, "turn_id": labelled}))
+        return {"reinforced": len(node_ids), "delta": delta, "turn_id": labelled}
 
     def teach(self, statement: str, weight: float = 0.5, scope: str = "*", polarity: float = 1.0) -> dict:
         """Owner teaching: install a disposition into the character ledger."""
@@ -108,9 +114,46 @@ class Runtime:
         return decision
 
     def compile(self, text: str = "", budget_tokens: int = 1200, k: int = 8) -> dict:
-        """Context compiler: budgeted assembly for the next model call."""
+        """Context compiler: budgeted assembly for the next model call.
+
+        Also records a *turn* (which traits and nodes were injected) so the
+        dream cycle can later correlate them with the outcome. This is what
+        closes the personality loop.
+        """
         c = self.compiler.compile(text, budget_tokens=budget_tokens, k=k)
-        return asdict(c)
+        turn_id = self.dream.record_turn(
+            session=None,
+            trait_ids=[t["id"] for t in c.traits],
+            node_ids=[n["node_id"] for n in c.nodes],
+            text=text,
+        )
+        self._last_turn = turn_id
+        out = asdict(c)
+        out["turn_id"] = turn_id
+        return out
+
+    # ------------------------------------------------------------ dream cycle
+
+    def dream_consolidate(self, min_evidence: int = 2) -> dict:
+        report = self.dream.consolidate(min_evidence=min_evidence)
+        self.bus.publish(Event(kind=EventKind.DREAM, source="dream", payload=report.as_dict()))
+        return report.as_dict()
+
+    def telemetry(self) -> dict:
+        return {
+            "dream": self.dream.telemetry(),
+            "character": self.character.stats(),
+            "ledger": self.ledger.stats(),
+        }
+
+    def trait_proposals(self) -> list[dict]:
+        return self.dream.proposals()
+
+    def ratify(self, proposal_id: str, weight: float = 0.5) -> dict | None:
+        out = self.dream.ratify(proposal_id, weight=weight)
+        if out:
+            self.bus.publish(Event(kind=EventKind.DREAM, source="character", payload={"ratified": out}))
+        return out
 
     # ------------------------------------------------------------------- read
 
@@ -122,6 +165,7 @@ class Runtime:
             "bus": {"format": self.cfg.bus_format, "events": self.log.count(), "chain": chain},
             "ledger": self.ledger.stats(),
             "character": self.character.stats(),
+            "telemetry": self.dream.telemetry(),
         }
 
     def events(self, since: int = 0, kinds: list[str] | None = None, limit: int = 200) -> list[dict]:
@@ -135,6 +179,7 @@ class Runtime:
         return {"stats": self.character.stats(), "drift": self.character.drift(), "traits": [asdict(t) for t in self.character.all_traits()]}
 
     def close(self) -> None:
+        self.dream.close()
         self.ledger.close()
         self.character.close()
         self.log.close()
